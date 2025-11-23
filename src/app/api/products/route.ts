@@ -10,13 +10,39 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url)
     const featured = searchParams.get('featured')
+    const sort = searchParams.get('sort') || 'newest'
 
     let query = {}
     if (featured === 'true') {
       query = { featured: true }
     }
 
-    const products = await Product.find(query).sort({ createdAt: -1 })
+    let sortQuery: any = { createdAt: -1 }
+    
+    switch (sort) {
+      case 'newest':
+        sortQuery = { createdAt: -1 }
+        break
+      case 'oldest':
+        sortQuery = { createdAt: 1 }
+        break
+      case 'price-low':
+        sortQuery = { price: 1 }
+        break
+      case 'price-high':
+        sortQuery = { price: -1 }
+        break
+      case 'name-asc':
+        sortQuery = { name: 1 }
+        break
+      case 'name-desc':
+        sortQuery = { name: -1 }
+        break
+      default:
+        sortQuery = { createdAt: -1 }
+    }
+
+    const products = await Product.find(query).sort(sortQuery)
     return NextResponse.json(products)
   } catch (error) {
     console.error('Get products error:', error)
